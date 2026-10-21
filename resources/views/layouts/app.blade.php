@@ -195,7 +195,15 @@
         .btn-primary-custom:hover {
             background: #1d4ed8;
             transform: translateY(-2px);
-        }
+       .card-custom canvas {
+    max-height: 100%;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+ }
     </style>
 </head>
 <body>
@@ -206,34 +214,36 @@
             <small>FORTUNA INVENTORY</small>
         </div>
         
-        <nav class="nav flex-column">
-            <a href="#" class="nav-link active">
-                <i class="bi bi-speedometer2"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="#" class="nav-link">
-                <i class="bi bi-box-seam"></i>
-                <span>Inventory</span>
-            </a>
-            <a href="#" class="nav-link">
-                <i class="bi bi-cart-plus"></i>
-                <span>Barang Masuk</span>
-            </a>
-            <a href="#" class="nav-link">
-                <i class="bi bi-cart-dash"></i>
-                <span>Barang Keluar</span>
-            </a>
-            <a href="#" class="nav-link">
-                <i class="bi bi-people"></i>
-                <span>Supplier</span>
-            </a>
-            <a href="#" class="nav-link">
-                <i class="bi bi-file-earmark-text"></i>
-                <span>Laporan</span>
-            </a>
-            <a href="#" class="nav-link">
-                <i class="bi bi-gear"></i>
-                <span>Pengaturan</span>
+       <nav class="nav flex-column">
+    <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+        <i class="bi bi-speedometer2"></i>
+        <span>Dashboard</span>
+    </a>
+    <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.*') ? 'active' : '' }}">
+        <i class="bi bi-box-seam"></i>
+        <span>Inventory</span>
+    </a>
+    <a href="{{ route('barang-masuk.index') }}" class="nav-link {{ request()->routeIs('barang-masuk.*') ? 'active' : '' }}">
+        <i class="bi bi-cart-plus"></i>
+        <span>Barang Masuk</span>
+    </a>
+    <a href="{{ route('barang-keluar.index') }}" class="nav-link {{ request()->routeIs('barang-keluar.*') ? 'active' : '' }}">
+        <i class="bi bi-cart-dash"></i>
+        <span>Barang Keluar</span>
+    </a>
+    <a href="{{ route('supplier.index') }}" class="nav-link {{ request()->routeIs('supplier.*') ? 'active' : '' }}">
+        <i class="bi bi-people"></i>
+        <span>Supplier</span>
+    </a>
+    <a href="{{ route('laporan.index') }}" class="nav-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
+        <i class="bi bi-file-earmark-text"></i>
+        <span>Laporan</span>
+    </a>
+    <a href="{{ route('pengaturan.index') }}" class="nav-link {{ request()->routeIs('pengaturan.*') ? 'active' : '' }}">
+        <i class="bi bi-gear"></i>
+        <span>Pengaturan</span>
+    </a>
+</nav>
             </a>
         </nav>
     </div>

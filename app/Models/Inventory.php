@@ -27,4 +27,9 @@ class Inventory extends Model
         'harga_beli' => 'decimal:2',
         'harga_jual' => 'decimal:2',
     ];
+    
+    public function transactions()
+{
+    return $this->hasMany(Transaction::class);
+}
 }

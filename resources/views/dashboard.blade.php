@@ -10,9 +10,9 @@
             <p class="text-muted mb-0">Selamat datang di sistem inventory ATMI MIKAEL FORTUNA</p>
         </div>
         <div>
-            <button class="btn btn-primary-custom">
+            <a href="{{ route('inventory.create') }}" class="btn btn-primary-custom">
                 <i class="bi bi-plus-circle me-2"></i>Tambah Barang
-            </button>
+            </a>
         </div>
     </div>
 
@@ -59,14 +59,60 @@
         </div>
     </div>
 
-    <!-- Charts & Tables -->
+    <!-- Charts Row 1 -->
+    <div class="row g-4 mb-4">
+        <!-- Pie Chart: Stok per Kategori -->
+        <div class="col-lg-6">
+            <div class="card-custom">
+                <h5><i class="bi bi-pie-chart me-2"></i>Distribusi Stok per Kategori</h5>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="kategoriChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bar Chart: Nilai per Kategori -->
+        <div class="col-lg-6">
+            <div class="card-custom">
+                <h5><i class="bi bi-bar-chart me-2"></i>Nilai Inventory per Kategori</h5>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="nilaiChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row g-4 mb-4">
+        <!-- Doughnut Chart: Status Barang -->
+        <div class="col-lg-4">
+            <div class="card-custom">
+                <h5><i class="bi bi-check-circle me-2"></i>Status Barang</h5>
+                <div style="position: relative; height: 250px;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bar Chart Horizontal: Top 10 Stok -->
+        <div class="col-lg-8">
+            <div class="card-custom">
+                <h5><i class="bi bi-trophy me-2"></i>Top 10 Barang dengan Stok Terbanyak</h5>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="topStokChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables -->
     <div class="row g-4">
         <!-- Barang Terbaru -->
         <div class="col-lg-8">
             <div class="card-custom">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="mb-0">Barang Terbaru Ditambahkan</h5>
-                    <a href="#" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                    <a href="{{ route('inventory.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-custom">
@@ -136,45 +182,175 @@
         </div>
     </div>
 
-    <!-- Kategori & Status -->
-    <div class="row g-4 mt-2">
-        <div class="col-md-6">
-            <div class="card-custom">
-                <h5>Kategori Barang</h5>
-                <div class="d-flex flex-wrap gap-2">
-                    @foreach($kategori as $kat)
-                    <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
-                        {{ $kat->kategori }} <span class="ms-1">({{ $kat->total }})</span>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Chart Configuration -->
+    <script>
+        // Data dari Laravel
+        const kategoriLabels = @json($kategoriData->pluck('kategori'));
+        const kategoriData = @json($kategoriData->pluck('total_stok'));
+        
+        const nilaiLabels = @json($nilaiKategori->pluck('kategori'));
+        const nilaiData = @json($nilaiKategori->pluck('total_nilai'));
+        
+        const statusLabels = ['Tersedia', 'Habis', 'Rusak'];
+        const statusData = [@json($statusData['tersedia']), @json($statusData['habis']), @json($statusData['rusak'])];
+        
+        const topStokLabels = @json($topStok->pluck('nama_barang'));
+        const topStokData = @json($topStok->pluck('stok'));
 
-        <div class="col-md-6">
-            <div class="card-custom">
-                <h5>Status Inventory</h5>
-                <div class="row text-center">
-                    <div class="col-4">
-                        <div class="p-3 bg-success bg-opacity-10 rounded">
-                            <h4 class="text-success mb-1">{{ $totalBarang - $barangHabis - $barangRusak }}</h4>
-                            <small>Tersedia</small>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="p-3 bg-danger bg-opacity-10 rounded">
-                            <h4 class="text-danger mb-1">{{ $barangHabis }}</h4>
-                            <small>Habis</small>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="p-3 bg-warning bg-opacity-10 rounded">
-                            <h4 class="text-warning mb-1">{{ $barangRusak }}</h4>
-                            <small>Rusak</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+        // Warna untuk chart
+        const colors = [
+            '#2563eb', '#10b981', '#f59e0b', '#ef4444', 
+            '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
+        ];
+
+        // Chart 1: Pie Chart - Stok per Kategori
+        if (kategoriLabels.length > 0) {
+            new Chart(document.getElementById('kategoriChart'), {
+                type: 'pie',
+                data: {
+                    labels: kategoriLabels,
+                    datasets: [{
+                        data: kategoriData,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 15, font: { size: 12 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + ' unit';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('kategoriChart').parentElement.innerHTML = '<div class="text-center text-muted py-5">Belum ada data</div>';
+        }
+
+        // Chart 2: Bar Chart - Nilai per Kategori
+        if (nilaiLabels.length > 0) {
+            new Chart(document.getElementById('nilaiChart'), {
+                type: 'bar',
+                data: {
+                    labels: nilaiLabels,
+                    datasets: [{
+                        label: 'Nilai Inventory (Rp)',
+                        data: nilaiData,
+                        backgroundColor: '#2563eb',
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Rp ' + context.parsed.y.toLocaleString('id-ID');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    if (value >= 1000000) {
+                                        return 'Rp ' + (value / 1000000).toFixed(1) + 'M';
+                                    }
+                                    return 'Rp ' + (value / 1000).toFixed(0) + 'K';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('nilaiChart').parentElement.innerHTML = '<div class="text-center text-muted py-5">Belum ada data</div>';
+        }
+
+        // Chart 3: Doughnut Chart - Status Barang
+        const totalStatus = statusData.reduce((a, b) => a + b, 0);
+        if (totalStatus > 0) {
+            new Chart(document.getElementById('statusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: statusData,
+                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 15, font: { size: 12 } }
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('statusChart').parentElement.innerHTML = '<div class="text-center text-muted py-5">Belum ada data</div>';
+        }
+
+        // Chart 4: Horizontal Bar - Top 10 Stok
+        if (topStokLabels.length > 0) {
+            new Chart(document.getElementById('topStokChart'), {
+                type: 'bar',
+                data: {
+                    labels: topStokLabels,
+                    datasets: [{
+                        label: 'Stok',
+                        data: topStokData,
+                        backgroundColor: '#10b981',
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + ' unit';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('topStokChart').parentElement.innerHTML = '<div class="text-center text-muted py-5">Belum ada data</div>';
+        }
+    </script>
 @endsection
