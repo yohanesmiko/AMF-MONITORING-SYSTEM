@@ -95,4 +95,52 @@ Route::post('/barang-masuk', [\App\Http\Controllers\BarangMasukController::class
 Route::get('/barang-keluar', [\App\Http\Controllers\BarangKeluarController::class, 'index'])->name('barang-keluar.index');
 Route::get('/barang-keluar/create', [\App\Http\Controllers\BarangKeluarController::class, 'create'])->name('barang-keluar.create');
 Route::post('/barang-keluar', [\App\Http\Controllers\BarangKeluarController::class, 'store'])->name('barang-keluar.store');
+
+// Stock Material
+Route::resource('material', \App\Http\Controllers\MaterialController::class);
+
+// Purchase Order
+Route::resource('po', \App\Http\Controllers\POController::class);
+Route::post('/po/{po}/update-status', [\App\Http\Controllers\POController::class, 'updateStatus'])->name('po.update-status');
+
+// WIP (Work In Progress)
+Route::resource('wip', \App\Http\Controllers\WipController::class);
+Route::post('/wip/{wip}/update-status', [\App\Http\Controllers\WipController::class, 'updateStatus'])->name('wip.update-status');
+
+// Catatan
+Route::resource('catatan', \App\Http\Controllers\CatatanController::class);
+
+// Kalkulasi Kebutuhan
+Route::get('/kalkulasi', [\App\Http\Controllers\KalkulasiController::class, 'index'])->name('kalkulasi.index');
+Route::post('/kalkulasi/hitung', [\App\Http\Controllers\KalkulasiController::class, 'hitung'])->name('kalkulasi.hitung');
+Route::post('/kalkulasi/catat-penggunaan', [\App\Http\Controllers\KalkulasiController::class, 'catatPenggunaan'])->name('kalkulasi.catat');
+
+// Produksi & Monitoring
+Route::get('/produksi', [\App\Http\Controllers\ProduksiController::class, 'index'])->name('produksi.index');
+Route::post('/produksi/jalankan', [\App\Http\Controllers\ProduksiController::class, 'jalankanProduksi'])->name('produksi.jalankan');
+Route::post('/produksi/kalkulasi', [\App\Http\Controllers\ProduksiController::class, 'kalkulasiDetail'])->name('produksi.kalkulasi');
+
+// Warning System
+Route::get('/warning', [\App\Http\Controllers\WarningController::class, 'index'])->name('warning.index');
+Route::post('/warning/catat', [\App\Http\Controllers\WarningController::class, 'catatPenggunaan'])->name('warning.catat');
+
+// Produksi Shift
+Route::get('/produksi-shift', [\App\Http\Controllers\ShiftProductionController::class, 'index'])->name('produksi-shift.index');
+Route::get('/produksi-shift/create', [\App\Http\Controllers\ShiftProductionController::class, 'create'])->name('produksi-shift.create');
+Route::post('/produksi-shift', [\App\Http\Controllers\ShiftProductionController::class, 'store'])->name('produksi-shift.store');
+Route::get('/produksi-shift/laporan', [\App\Http\Controllers\ShiftProductionController::class, 'laporan'])->name('produksi-shift.laporan');
+Route::get('/produksi-shift/setup', [\App\Http\Controllers\ShiftProductionController::class, 'setupProduk'])->name('produksi-shift.setup');
+Route::post('/produksi-shift/setup', [\App\Http\Controllers\ShiftProductionController::class, 'storeProduk'])->name('produksi-shift.store-produk');
+
+// Ganti route dashboard menjadi inventory (root)
+Route::get('/', function () {
+    return redirect()->route('inventory');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Dashboard/Inventory (nama route: inventory)
+    Route::get('/inventory', [\App\Http\Controllers\DashboardController::class, 'index'])->name('inventory');
+    
+    // ... route lainnya tetap sama
+});
 });

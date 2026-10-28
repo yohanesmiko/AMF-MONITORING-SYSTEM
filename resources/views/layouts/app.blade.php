@@ -3,247 +3,479 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title') - ATMI MIKAEL FORTUNA</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', 'Dashboard') - ATMI MIKAEL FORTUNA</title>
     
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap 5 CSS (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
+        /* ===== CSS RESET & BASE ===== */
         :root {
-            --primary-color: #2563eb;
-            --secondary-color: #64748b;
-            --success-color: #10b981;
-            --danger-color: #ef4444;
-            --warning-color: #f59e0b;
-            --dark-color: #1e293b;
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: #e0e7ff;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --info: #06b6d4;
+            --info-light: #cffafe;
+            --dark: #0f172a;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --sidebar-width: 280px;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --radius: 10px;
+            --radius-lg: 14px;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background: #f1f5f9;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--gray-100);
+            color: var(--gray-800);
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-x: hidden;
         }
 
+        /* ===== SIDEBAR ===== */
         .sidebar {
             position: fixed;
             top: 0;
             left: 0;
             height: 100vh;
-            width: 260px;
-            background: linear-gradient(180deg, #1e293b 0%, #334155 100%);
-            padding: 20px 0;
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
             z-index: 1000;
-            transition: all 0.3s;
+            overflow-y: auto;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
         }
 
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+
         .sidebar .brand {
-            padding: 0 20px 30px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 20px;
+            padding: 28px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.2);
         }
 
         .sidebar .brand h3 {
             color: white;
-            font-weight: 700;
+            font-weight: 800;
             margin: 0;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
+            letter-spacing: 0.5px;
         }
 
         .sidebar .brand small {
             color: #94a3b8;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .sidebar .nav-section {
+            padding: 16px 24px 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
         }
 
         .sidebar .nav-link {
             color: #cbd5e1;
-            padding: 12px 20px;
+            padding: 13px 24px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            transition: all 0.3s;
+            gap: 14px;
+            transition: all 0.25s ease;
             border-left: 3px solid transparent;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.92rem;
         }
 
         .sidebar .nav-link:hover {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             color: white;
-            border-left-color: var(--primary-color);
+            border-left-color: var(--primary);
+            padding-left: 28px;
         }
 
         .sidebar .nav-link.active {
-            background: rgba(37, 99, 235, 0.1);
+            background: linear-gradient(90deg, rgba(79, 70, 229, 0.15) 0%, transparent 100%);
             color: white;
-            border-left-color: var(--primary-color);
+            border-left-color: var(--primary);
         }
 
         .sidebar .nav-link i {
-            font-size: 1.2rem;
+            font-size: 1.15rem;
+            width: 22px;
+            text-align: center;
+            opacity: 0.85;
         }
 
+        .sidebar .nav-link.active i {
+            opacity: 1;
+            color: #a5b4fc;
+        }
+
+        /* ===== MAIN CONTENT ===== */
         .main-content {
-            margin-left: 260px;
-            padding: 30px;
+            margin-left: var(--sidebar-width);
+            padding: 32px;
+            min-height: 100vh;
+            width: calc(100% - var(--sidebar-width));
+            background: var(--gray-100);
         }
 
+        /* ===== TOPBAR ===== */
         .topbar {
             background: white;
-            padding: 20px 30px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 28px 32px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            width: 100%;
+            border: 1px solid var(--gray-200);
+            margin-bottom: 24px;
         }
 
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
-            border: none;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-
-        .stat-card .icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            margin-bottom: 15px;
-        }
-
-        .stat-card .icon.primary { background: rgba(37, 99, 235, 0.1); color: var(--primary-color); }
-        .stat-card .icon.success { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
-        .stat-card .icon.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
-        .stat-card .icon.danger { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
-
-        .stat-card h3 {
-            font-size: 2rem;
+        .topbar h4 {
             font-weight: 700;
-            margin: 10px 0 5px;
-            color: var(--dark-color);
+            color: var(--gray-900);
+            font-size: 1.5rem;
+            margin: 0;
         }
 
-        .stat-card p {
-            color: var(--secondary-color);
-            margin: 0;
+        .topbar p {
+            color: var(--gray-500);
+            margin: 4px 0 0;
             font-size: 0.9rem;
         }
 
+        /* ===== STAT CARDS ===== */
+        .stat-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 26px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            border: 1px solid var(--gray-200);
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary) 0%, #818cf8 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card:hover::before { opacity: 1; }
+
+        .stat-card .icon {
+            width: 54px;
+            height: 54px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin-bottom: 16px;
+        }
+
+        .stat-card .icon.primary { background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); color: var(--primary); }
+        .stat-card .icon.success { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: var(--success); }
+        .stat-card .icon.warning { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); color: var(--warning); }
+        .stat-card .icon.danger { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: var(--danger); }
+        .stat-card .icon.info { background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%); color: var(--info); }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 8px 0 4px;
+            color: var(--gray-900);
+            letter-spacing: -0.5px;
+        }
+
+        .stat-card p {
+            color: var(--gray-500);
+            margin: 0;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* ===== CARD CUSTOM ===== */
         .card-custom {
             background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            border: none;
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            width: 100%;
+            margin-bottom: 24px;
         }
 
         .card-custom h5 {
-            font-weight: 600;
-            color: var(--dark-color);
+            font-weight: 700;
+            color: var(--gray-900);
             margin-bottom: 20px;
+            font-size: 1.1rem;
         }
 
-        .table-custom {
-            margin: 0;
-        }
+        /* ===== TABLE ===== */
+        .table-custom { margin: 0; width: 100%; font-size: 0.9rem; }
 
         .table-custom thead th {
-            background: #f8fafc;
+            background: var(--gray-50);
             border: none;
-            font-weight: 600;
-            color: var(--secondary-color);
-            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--gray-600);
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            padding: 14px 16px;
+            border-bottom: 2px solid var(--gray-200);
         }
 
         .table-custom tbody td {
             vertical-align: middle;
-            border-color: #f1f5f9;
+            border-color: var(--gray-100);
+            padding: 14px 16px;
+            color: var(--gray-700);
         }
 
+        .table-custom tbody tr:hover { background: var(--gray-50); }
+
+        /* ===== BADGES ===== */
         .badge-status {
             padding: 6px 12px;
-            border-radius: 6px;
+            border-radius: 20px;
             font-size: 0.75rem;
-            font-weight: 500;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .badge-tersedia { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
-        .badge-habis { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
-        .badge-rusak { background: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
+        .badge-tersedia { background: var(--success-light); color: #065f46; }
+        .badge-habis { background: var(--danger-light); color: #991b1b; }
+        .badge-rusak, .badge-menipis { background: var(--warning-light); color: #92400e; }
 
+        /* ===== BUTTONS ===== */
         .btn-primary-custom {
-            background: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.3s;
+            padding: 11px 24px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            color: white;
+            transition: all 0.25s;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
         }
 
         .btn-primary-custom:hover {
-            background: #1d4ed8;
             transform: translateY(-2px);
-       .card-custom canvas {
-    max-height: 100%;
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35);
+            color: white;
+        }
+
+        /* ===== FORM ===== */
+        .form-label { font-weight: 600; color: var(--gray-700); margin-bottom: 6px; font-size: 0.85rem; }
+
+        .form-control, .form-select {
+            border-radius: var(--radius);
+            border: 1.5px solid var(--gray-200);
+            padding: 11px 14px;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            background: white;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        /* ===== ALERTS ===== */
+        .alert {
+            border-radius: var(--radius);
+            border: none;
+            padding: 16px 20px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .alert-success { background: var(--success-light); color: #065f46; }
+        .alert-danger { background: var(--danger-light); color: #991b1b; }
+        .alert-warning { background: var(--warning-light); color: #92400e; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 992px) {
+            .sidebar { width: 100%; height: auto; position: relative; }
+            .main-content { margin-left: 0; width: 100%; padding: 20px; }
+        }
+
+        @media (max-width: 576px) {
+            .main-content { padding: 16px; }
+            .topbar { padding: 20px; }
+            .stat-card h3 { font-size: 1.6rem; }
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-custom, .stat-card, .topbar { animation: fadeIn 0.4s ease-out; }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--gray-100); }
+        ::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+
+        /* Badge Purple untuk Masterbatch */
+.bg-purple {
+    background: #8b5cf6 !important;
+    color: white !important;
 }
 
-.chart-container {
-    position: relative;
-    height: 300px;
-    width: 100%;
- }
+/* Form styling */
+.form-label.fw-semibold {
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+}
+
+.input-group-text {
+    background: var(--gray-50);
+    border: 1.5px solid var(--gray-200);
+    border-left: none;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+
+.input-group .form-control {
+    border-right: none;
+    border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.input-group .form-control:focus {
+    border-right: 1.5px solid var(--primary);
+}
     </style>
+    
+    @stack('styles')
 </head>
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="brand">
             <h3>ATMI MIKAEL</h3>
-            <small>FORTUNA INVENTORY</small>
+            <small>Fortuna Inventory</small>
         </div>
         
-       <nav class="nav flex-column">
-    <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-        <i class="bi bi-speedometer2"></i>
-        <span>Dashboard</span>
-    </a>
-    <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.*') ? 'active' : '' }}">
-        <i class="bi bi-box-seam"></i>
-        <span>Inventory</span>
-    </a>
-    <a href="{{ route('barang-masuk.index') }}" class="nav-link {{ request()->routeIs('barang-masuk.*') ? 'active' : '' }}">
-        <i class="bi bi-cart-plus"></i>
-        <span>Barang Masuk</span>
-    </a>
-    <a href="{{ route('barang-keluar.index') }}" class="nav-link {{ request()->routeIs('barang-keluar.*') ? 'active' : '' }}">
-        <i class="bi bi-cart-dash"></i>
-        <span>Barang Keluar</span>
-    </a>
-    <a href="{{ route('supplier.index') }}" class="nav-link {{ request()->routeIs('supplier.*') ? 'active' : '' }}">
-        <i class="bi bi-people"></i>
-        <span>Supplier</span>
-    </a>
-    <a href="{{ route('laporan.index') }}" class="nav-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
-        <i class="bi bi-file-earmark-text"></i>
-        <span>Laporan</span>
-    </a>
-    <a href="{{ route('pengaturan.index') }}" class="nav-link {{ request()->routeIs('pengaturan.*') ? 'active' : '' }}">
-        <i class="bi bi-gear"></i>
-        <span>Pengaturan</span>
-    </a>
-</nav>
+        <div class="nav-section">Menu Utama</div>
+        <nav class="nav flex-column">
+            <a href="{{ route('inventory') }}" class="nav-link {{ request()->routeIs('inventory') ? 'active' : '' }}">
+                <i class="bi bi-grid-1x2-fill"></i>
+                <span>Inventory</span>
+            </a>
+            <a href="{{ route('material.index') }}" class="nav-link {{ request()->routeIs('material.*') ? 'active' : '' }}">
+                <i class="bi bi-layers-fill"></i>
+                <span>Stock Material</span>
+            </a>
+            <a href="{{ route('po.index') }}" class="nav-link {{ request()->routeIs('po.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-text-fill"></i>
+                <span>Purchase Order</span>
+            </a>
+        </nav>
+
+        <div class="nav-section">Transaksi</div>
+        <nav class="nav flex-column">
+            <a href="{{ route('barang-masuk.index') }}" class="nav-link {{ request()->routeIs('barang-masuk.*') ? 'active' : '' }}">
+                <i class="bi bi-arrow-down-circle-fill"></i>
+                <span>Barang Masuk</span>
+            </a>
+            <a href="{{ route('barang-keluar.index') }}" class="nav-link {{ request()->routeIs('barang-keluar.*') ? 'active' : '' }}">
+                <i class="bi bi-arrow-up-circle-fill"></i>
+                <span>Barang Keluar</span>
+            </a>
+            <a href="{{ route('wip.index') }}" class="nav-link {{ request()->routeIs('wip.*') ? 'active' : '' }}">
+                <i class="bi bi-gear-wide-connected"></i>
+                <span>Barang WIP</span>
+            </a>
+        </nav>
+
+        <div class="nav-section">Analisis</div>
+        <nav class="nav flex-column">
+            <a href="{{ route('kalkulasi.index') }}" class="nav-link {{ request()->routeIs('kalkulasi.*') ? 'active' : '' }}">
+                <i class="bi bi-calculator-fill"></i>
+                <span>Kalkulasi</span>
+            </a>
+            <a href="{{ route('catatan.index') }}" class="nav-link {{ request()->routeIs('catatan.*') ? 'active' : '' }}">
+                <i class="bi bi-journal-text"></i>
+                <span>Catatan</span>
+            </a>
+            <a href="{{ route('laporan.index') }}" class="nav-link {{ request()->routeIs('laporan.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                <span>Laporan</span>
+            </a>
+        </nav>
+
+        <div class="nav-section">Lainnya</div>
+        <nav class="nav flex-column">
+            <a href="{{ route('supplier.index') }}" class="nav-link {{ request()->routeIs('supplier.*') ? 'active' : '' }}">
+                <i class="bi bi-people-fill"></i>
+                <span>Supplier</span>
+            </a>
+            <a href="{{ route('pengaturan.index') }}" class="nav-link {{ request()->routeIs('pengaturan.*') ? 'active' : '' }}">
+                <i class="bi bi-gear-fill"></i>
+                <span>Pengaturan</span>
             </a>
         </nav>
     </div>
@@ -254,6 +486,8 @@
     </div>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    @stack('scripts')
 </body>
 </html>

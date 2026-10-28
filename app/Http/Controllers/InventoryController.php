@@ -70,7 +70,7 @@ class InventoryController extends Controller
             'harga_jual' => 'required|numeric|min:0',
             'lokasi' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string',
-            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'status' => 'required|in:tersedia,habis,rusak',
         ]);
 
@@ -118,7 +118,7 @@ class InventoryController extends Controller
             'harga_jual' => 'required|numeric|min:0',
             'lokasi' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string',
-            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'status' => 'required|in:tersedia,habis,rusak',
         ]);
 
@@ -161,7 +161,6 @@ class InventoryController extends Controller
      */
     public function exportExcel()
     {
-        // Install package dulu: composer require maatwebsite/excel
         return back()->with('info', 'Fitur export Excel belum tersedia. Install package terlebih dahulu.');
     }
 
@@ -170,7 +169,6 @@ class InventoryController extends Controller
      */
     public function exportPdf()
     {
-        // Install package dulu: composer require barryvdh/laravel-dompdf
         return back()->with('info', 'Fitur export PDF belum tersedia. Install package terlebih dahulu.');
     }
 }

@@ -2,68 +2,67 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Inventory;
+use App\Models\Material;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // Hitung statistik
-        $totalBarang = Inventory::count();
-        $totalStok = Inventory::sum('stok');
-        $totalNilai = Inventory::selectRaw('SUM(stok * harga_beli) as total')->value('total') ?? 0;
-        $barangHabis = Inventory::where('status', 'habis')->count();
-        $barangRusak = Inventory::where('status', 'rusak')->count();
-        $stokMenipis = Inventory::where('stok', '<=', 10)->where('status', 'tersedia')->count();
+        // Statistik dari tabel materials
+        $totalMaterial = Material::count();
+        $totalStok = Material::sum('stok');
+        $totalNilai = Material::selectRaw('SUM(stok * harga_satuan) as total')->value('total') ?? 0;
+        $materialMenipis = Material::where('status', 'menipis')->count();
+        $materialHabis = Material::where('status', 'habis')->count();
 
-        // Ambil data terbaru
-        $barangTerbaru = Inventory::latest()->take(5)->get();
-        
-        // Stok menipis
-        $stokMenipisList = Inventory::where('stok', '<=', 10)
-            ->where('status', 'tersedia')
-            ->orderBy('stok')
-            ->take(5)
-            ->get();
-
-        // Data untuk Chart 1: Stok per Kategori (Pie Chart)
-        $kategoriData = Inventory::selectRaw('kategori, SUM(stok) as total_stok')
+        // Data untuk Chart 1: Stok per Kategori Material
+        $kategoriData = Material::selectRaw('kategori, SUM(stok) as total_stok')
+            ->whereNotNull('kategori')
             ->groupBy('kategori')
             ->orderByDesc('total_stok')
             ->take(7)
             ->get();
 
-        // Data untuk Chart 2: Nilai Inventory per Kategori (Bar Chart)
-        $nilaiKategori = Inventory::selectRaw('kategori, SUM(stok * harga_beli) as total_nilai')
+        // Data untuk Chart 2: Nilai Material per Kategori
+        $nilaiKategori = Material::selectRaw('kategori, SUM(stok * COALESCE(harga_satuan, 0)) as total_nilai')
+            ->whereNotNull('kategori')
             ->groupBy('kategori')
             ->orderByDesc('total_nilai')
             ->take(7)
             ->get();
 
-        // Data untuk Chart 3: Status Barang (Doughnut Chart)
+        // Data untuk Chart 3: Status Material (Doughnut)
         $statusData = [
-            'tersedia' => Inventory::where('status', 'tersedia')->count(),
-            'habis' => $barangHabis,
-            'rusak' => $barangRusak,
+            'tersedia' => Material::where('status', 'tersedia')->count(),
+            'menipis' => $materialMenipis,
+            'habis' => $materialHabis,
         ];
 
-        // Data untuk Chart 4: Top 10 Barang dengan Stok Terbanyak
-        $topStok = Inventory::orderByDesc('stok')->take(10)->get();
+        // Data untuk Chart 4: Top 10 Material dengan Stok Terbanyak
+        $topStok = Material::orderByDesc('stok')->take(10)->get();
+
+        // Material terbaru ditambahkan
+        $materialTerbaru = Material::latest()->take(5)->get();
+
+        // Material stok menipis
+        $stokMenipisList = Material::where('status', 'menipis')
+            ->orderBy('stok')
+            ->take(5)
+            ->get();
 
         return view('dashboard', compact(
-            'totalBarang',
+            'totalMaterial',
             'totalStok',
             'totalNilai',
-            'barangHabis',
-            'barangRusak',
-            'stokMenipis',
-            'barangTerbaru',
-            'stokMenipisList',
+            'materialMenipis',
+            'materialHabis',
             'kategoriData',
             'nilaiKategori',
             'statusData',
-            'topStok'
+            'topStok',
+            'materialTerbaru',
+            'stokMenipisList'
         ));
     }
 }

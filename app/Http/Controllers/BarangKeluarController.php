@@ -84,8 +84,19 @@ class BarangKeluarController extends Controller
         ]);
 
         // KURANGI STOK - INI BAGIAN PENTING!
-        $inventory->stok = $inventory->stok - $validated['jumlah'];
-        
+        // Kurangi stok
+$inventory->stok -= $validated['jumlah'];
+
+// Auto update status
+if ($inventory->stok == 0) {
+    $inventory->status = 'habis';
+} elseif ($inventory->stok <= $inventory->stok_minimum) {
+    $inventory->status = 'menipis';
+} else {
+    $inventory->status = 'tersedia';
+}
+$inventory->save();
+
         // Update status berdasarkan stok
         if ($inventory->stok == 0) {
             $inventory->status = 'habis';
