@@ -3,6 +3,7 @@
 @section('title', 'Produksi Shift')
 
 @section('content')
+    <!-- Topbar -->
     <div class="topbar">
         <div class="d-flex justify-content-between align-items-center">
             <div>
@@ -21,26 +22,59 @@
     </div>
 
     @if(session('success'))
-    <div class="alert alert-success mt-3">{{ session('success') }}</div>
+    <div class="alert alert-success mt-3 alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
     @endif
 
-    <!-- Pilih Produk -->
+    <!-- Pilih Produk (Dengan Tombol Edit/Hapus) -->
     @if($products->count() > 1)
     <div class="card-custom mb-4">
         <h5><i class="bi bi-box-seam me-2"></i>Pilih Produk</h5>
         <div class="row g-3">
             @foreach($products as $product)
             <div class="col-md-4">
-                <a href="{{ route('produksi-shift.index', ['product_id' => $product->id]) }}" 
-                   class="card-custom text-decoration-none {{ ($defaultProduct->id ?? 0) == $product->id ? 'border-primary' : '' }}"
-                   style="display: block;">
-                    <h6 class="mb-1">{{ $product->nama_produk }}</h6>
-                    <small class="text-muted">{{ $product->kode_produk }}</small>
-                    <div class="mt-2 small">
+                <div class="card-custom position-relative" style="cursor: pointer; transition: transform 0.2s;">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h6 class="mb-1">{{ $product->nama_produk }}</h6>
+                            <small class="text-muted">{{ $product->kode_produk }}</small>
+                        </div>
+                        <!-- Dropdown Menu Edit/Hapus -->
+                        <div class="dropdown" style="z-index: 10; position: relative;">
+                            <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown" onclick="event.stopPropagation()">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('produksi-shift.edit-produk', $product->id) }}">
+                                        <i class="bi bi-pencil me-2"></i>Edit Produk
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{{ route('produksi-shift.destroy-produk', $product->id) }}" method="POST" 
+                                          onsubmit="return confirm('Yakin ingin menghapus produk ini? Data produksi terkait mungkin terpengaruh.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            <i class="bi bi-trash me-2"></i>Hapus
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2">
                         <span class="badge bg-info">CT: {{ $product->cycle_time_standar }}s</span>
                         <span class="badge bg-primary">Target: {{ number_format($product->target_per_shift) }}/shift</span>
                     </div>
-                </a>
+
+                    <!-- Link ini membuat seluruh card bisa diklik untuk memilih produk -->
+                    <a href="{{ route('produksi-shift.index', ['product_id' => $product->id]) }}" class="stretched-link"></a>
+                </div>
             </div>
             @endforeach
         </div>
@@ -48,35 +82,59 @@
     @endif
 
     @if($defaultProduct)
-    <!-- Info Produk -->
+    <!-- Info Produk dengan Cycle Time yang BISA DIEDIT -->
     <div class="card-custom mb-4">
-        <div class="row">
+        <div class="row align-items-center">
             <div class="col-md-8">
-                <h5 class="mb-2">{{ $defaultProduct->nama_produk }}</h5>
+                <h4 class="mb-1">{{ $defaultProduct->nama_produk }}</h4>
                 <p class="text-muted mb-0">{{ $defaultProduct->deskripsi ?? 'Produk produksi reguler' }}</p>
+                
+                <div class="mt-3">
+                    <h6 class="mb-2">📦 Material per Unit:</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach($defaultProduct->materials as $pm)
+                        <span class="badge bg-light text-dark p-2">
+                            <i class="bi bi-circle-fill text-{{ $loop->index == 0 ? 'primary' : 'success' }} me-1"></i>
+                            {{ $pm->material->nama_material }}: <strong>{{ number_format($pm->qty_per_unit, 2) }} {{ $pm->satuan }}</strong>
+                        </span>
+                        @endforeach
+                    </div>
+                </div>
             </div>
+            
             <div class="col-md-4 text-end">
-                <div class="small text-muted">Cycle Time Standar</div>
-                <h3 class="text-primary mb-0">{{ $defaultProduct->cycle_time_standar }} <small class="text-muted">detik/unit</small></h3>
-                <div class="small text-muted mt-2">Target per Shift: <strong>{{ number_format($defaultProduct->target_per_shift) }} unit</strong></div>
+                <div class="p-3 rounded" style="background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);">
+                    <small class="text-muted d-block mb-1">Cycle Time Standar (Detik/Unit)</small>
+                    
+                    <!-- Form Edit Cycle Time -->
+                    <form action="{{ route('produksi-shift.update-cycle-time', $defaultProduct->id) }}" method="POST" class="d-flex align-items-center justify-content-end gap-2">
+                        @csrf
+                        @method('PATCH')
+                        <div class="input-group input-group-sm" style="max-width: 180px;">
+                            <input type="number" step="0.01" name="cycle_time_standar" 
+                                   class="form-control text-end fw-bold" 
+                                   value="{{ $defaultProduct->cycle_time_standar }}" 
+                                   min="0.01" required>
+                            <span class="input-group-text">s</span>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary" title="Simpan Cycle Time">
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+                    </form>
+                    
+                    <div class="mt-2">
+                        <small class="text-muted">Target per Shift:</small>
+                        <h5 class="mb-0 text-primary fw-bold">{{ number_format($defaultProduct->target_per_shift) }} unit</h5>
+                    </div>
+                </div>
             </div>
-        </div>
-        <hr>
-        <h6 class="mb-2">📦 Material per Unit:</h6>
-        <div class="d-flex flex-wrap gap-2">
-            @foreach($defaultProduct->materials as $pm)
-            <span class="badge bg-light text-dark p-2">
-                <i class="bi bi-circle-fill text-{{ $loop->index == 0 ? 'primary' : 'success' }} me-1"></i>
-                {{ $pm->material->nama_material }}: <strong>{{ number_format($pm->qty_per_unit, 2) }} {{ $pm->satuan }}</strong>
-            </span>
-            @endforeach
         </div>
     </div>
 
-    <!-- Status 3 Shift Hari Ini -->
+    <!-- Status 3 Shift Hari Ini (Tanpa Jam) -->
     <h5 class="mb-3"><i class="bi bi-calendar-check me-2"></i>Status Shift Hari Ini ({{ \Carbon\Carbon::parse($today)->format('d/m/Y') }})</h5>
     <div class="row g-4 mb-4">
-        @foreach(['1' => '🌅 Shift 1 (06:00-14:00)', '2' => '☀️ Shift 2 (14:00-22:00)', '3' => '🌙 Shift 3 (22:00-06:00)'] as $shiftNum => $shiftName)
+        @foreach(['1' => '🌅 Shift 1', '2' => '☀️ Shift 2', '3' => '🌙 Shift 3'] as $shiftNum => $shiftName)
         <div class="col-md-4">
             <div class="card-custom" style="border-top: 4px solid {{ $shiftsToday[$shiftNum] ? '#10b981' : '#cbd5e1' }};">
                 <div class="d-flex justify-content-between align-items-start mb-3">

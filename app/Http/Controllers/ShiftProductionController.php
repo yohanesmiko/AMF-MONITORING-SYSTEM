@@ -248,4 +248,99 @@ class ShiftProductionController extends Controller
 
         return back()->with('success', 'Produk berhasil dibuat!');
     }
+
+    /**
+     * Show form untuk edit produk
+     */
+    public function editProduk($productId)
+    {
+        $product = ProductionProduct::with('materials.material')->findOrFail($productId);
+        $materials = Material::all();
+        
+        return view('produksi-shift.edit-produk', compact('product', 'materials'));
+    }
+
+    /**
+     * Update produk
+     */
+    public function updateProduk(Request $request, $productId)
+    {
+        $validated = $request->validate([
+            'kode_produk' => 'required|string|max:100',
+            'nama_produk' => 'required|string|max:255',
+            'kategori' => 'nullable|string|max:100',
+            'cycle_time_standar' => 'required|numeric|min:0.01',
+            'waktu_shift_menit' => 'required|numeric|min:1',
+            'deskripsi' => 'nullable|string',
+            'materials' => 'nullable|array',
+            'materials.*.material_id' => 'required|exists:materials,id',
+            'materials.*.qty_per_unit' => 'required|numeric|min:0.01',
+        ]);
+
+        $product = ProductionProduct::findOrFail($productId);
+        
+        $product->kode_produk = $validated['kode_produk'];
+        $product->nama_produk = $validated['nama_produk'];
+        $product->kategori = $validated['kategori'];
+        $product->cycle_time_standar = $validated['cycle_time_standar'];
+        $product->waktu_shift_menit = $validated['waktu_shift_menit'];
+        $product->deskripsi = $validated['deskripsi'];
+        
+        // Hitung ulang target
+        $waktuEfektifDetik = $validated['waktu_shift_menit'] * 60;
+        $product->target_per_shift = floor($waktuEfektifDetik / $validated['cycle_time_standar']);
+        
+        $product->save();
+
+        // Update material recipe jika ada
+        if (isset($validated['materials'])) {
+            $product->materials()->delete();
+            
+            foreach ($validated['materials'] as $mat) {
+                $product->materials()->create([
+                    'material_id' => $mat['material_id'],
+                    'qty_per_unit' => $mat['qty_per_unit'],
+                    'satuan' => 'gram',
+                ]);
+            }
+        }
+
+        return redirect()->route('produksi-shift.index')
+            ->with('success', "Produk '{$product->nama_produk}' berhasil diupdate!");
+    }
+
+    /**
+     * Hapus produk
+     */
+    public function destroyProduk($productId)
+    {
+        $product = ProductionProduct::findOrFail($productId);
+        $namaProduk = $product->nama_produk;
+        
+        $product->delete();
+
+        return redirect()->route('produksi-shift.index')
+            ->with('success', "Produk '{$namaProduk}' berhasil dihapus!");
+    }
+
+    /**
+     * Update Cycle Time Standar Produk secara langsung dari halaman index
+     */
+    public function updateCycleTime(Request $request, $productId)
+    {
+        $validated = $request->validate([
+            'cycle_time_standar' => 'required|numeric|min:0.01',
+        ]);
+
+        $product = ProductionProduct::findOrFail($productId);
+        $product->cycle_time_standar = $validated['cycle_time_standar'];
+        
+        // Hitung ulang target per shift
+        $waktuEfektifDetik = $product->waktu_shift_menit * 60;
+        $product->target_per_shift = floor($waktuEfektifDetik / $validated['cycle_time_standar']);
+        
+        $product->save();
+
+        return back()->with('success', "Cycle Time berhasil diupdate menjadi {$validated['cycle_time_standar']} detik. Target per shift: {$product->target_per_shift} unit");
+    }
 }

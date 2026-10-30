@@ -68,35 +68,72 @@
         <!-- List Produk -->
         <div class="col-lg-7">
             <div class="card-custom">
-                <h5><i class="bi bi-list-ul me-2"></i>Produk yang Sudah Ada</h5>
-                @forelse($products as $product)
-                <div class="p-3 mb-3 rounded" style="background: #f8fafc; border-left: 4px solid #4f46e5;">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="mb-1">{{ $product->nama_produk }}</h6>
-                            <small class="text-muted">{{ $product->kode_produk }}</small>
+                <!-- Produk yang Sudah Ada -->
+<div class="col-md-6">
+    <div class="card-custom">
+        <h5 class="mb-3"><i class="bi bi-list-ul me-2"></i>Produk yang Sudah Ada</h5>
+        
+        @if($products->count() > 0)
+        <div class="list-group list-group-flush">
+            @foreach($products as $product)
+            <div class="list-group-item p-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">{{ $product->nama_produk }}</h6>
+                        <small class="text-muted d-block mb-2">{{ $product->kode_produk }}</small>
+                        
+                        <div class="mb-2">
+                            <span class="badge bg-info me-1">CT: {{ $product->cycle_time_standar }}s</span>
+                            <span class="badge bg-primary">Target: {{ number_format($product->target_per_shift) }}/shift</span>
                         </div>
-                        <span class="badge bg-primary">CT: {{ $product->cycle_time_standar }}s</span>
+                        
+                        <div class="small text-muted">
+                            <strong>Material:</strong>
+                            @foreach($product->materials as $index => $pm)
+                                {{ $pm->material->nama_material }}: {{ number_format($pm->qty_per_unit) }}gr
+                                @if(!$loop->last), @endif
+                            @endforeach
+                        </div>
                     </div>
-                    <div class="mt-2 small">
-                        <strong>Material:</strong>
-                        @foreach($product->materials as $pm)
-                        <span class="badge bg-light text-dark ms-1">
-                            {{ $pm->material->nama_material }}: {{ $pm->qty_per_unit }}gr
-                        </span>
-                        @endforeach
-                    </div>
-                    <div class="mt-2 small text-muted">
-                        Target/Shift: {{ number_format($product->target_per_shift) }} unit
+                    
+                    <div class="dropdown ms-2">
+                        <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{{ route('produksi-shift.edit-produk', $product->id) }}">
+                                    <i class="bi bi-pencil me-2"></i>Edit
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form action="{{ route('produksi-shift.destroy-produk', $product->id) }}" method="POST" 
+                                      onsubmit="return confirm('⚠️ Yakin ingin menghapus produk \'{{ $product->nama_produk }}\'?\n\nPeringatan: Data produksi yang terkait dengan produk ini mungkin akan terpengaruh.')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="bi bi-trash me-2"></i>Hapus
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
                     </div>
                 </div>
-                @empty
-                <p class="text-muted text-center py-4">Belum ada produk</p>
-                @endforelse
+            </div>
+            @endforeach
+        </div>
+        @else
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+            <p class="mb-0 mt-2">Belum ada produk</p>
+        </div>
+        @endif
+    </div>
+</div>
+
             </div>
         </div>
-    </div>
-
     <script>
         let materialCount = 1;
         function addMaterial() {

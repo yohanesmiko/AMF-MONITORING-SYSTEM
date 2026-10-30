@@ -92,4 +92,8 @@ class Material extends Model
         }
         return $this;
     }
+    public function materialOuts()
+{
+    return $this->hasMany(MaterialOut::class);
+}
 }
